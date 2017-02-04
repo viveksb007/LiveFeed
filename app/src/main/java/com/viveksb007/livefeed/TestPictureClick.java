@@ -5,6 +5,7 @@ import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -13,6 +14,7 @@ import android.widget.FrameLayout;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -48,7 +50,16 @@ public class TestPictureClick extends Activity {
 
         Camera.Parameters params = mCamera.getParameters();
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+        params.setPictureSize(320, 240);
         mCamera.setParameters(params);
+
+        Log.i(TAG,"Jpeg Quality : "+String.valueOf(params.getJpegQuality()));
+
+        List<Camera.Size> sizes = params.getSupportedPictureSizes();
+
+        for(Camera.Size size : sizes){
+            Log.i(TAG, "Available resolution: "+size.width+" "+size.height);
+        }
 
         trigger.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,7 +91,7 @@ public class TestPictureClick extends Activity {
         public void onPictureTaken(byte[] bytes, Camera camera) {
             // bytes is image data that needs to transfer to desktop
             if(bytes != null) {
-                Log.v(TAG, "GOt Picture");
+                Log.v(TAG, "Got Picture");
             }else
                 Log.v(TAG,"Got No picture");
 

@@ -63,6 +63,7 @@ public class LiveFeed extends Activity {
 
         Camera.Parameters params = mCamera.getParameters();
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+        params.setPictureSize(320, 240);
         mCamera.setParameters(params);
 
         ServerSocketThread temp = new ServerSocketThread();
