@@ -25,6 +25,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button btnOpenHotspot;
     @BindView(R.id.btn_live_feed)
     Button btnLiveFeed;
+    @BindView(R.id.btn_take_pic)
+    Button takePic;
 
     public WifiManager mWifiManager;
 
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ButterKnife.bind(this);
         btnOpenHotspot.setOnClickListener(this);
         btnLiveFeed.setOnClickListener(this);
+        takePic.setOnClickListener(this);
 
         mWifiManager = (WifiManager) getBaseContext().getSystemService(Context.WIFI_SERVICE);
     }
@@ -52,6 +55,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } else {
                     Toast.makeText(this, "No Camera Detected", Toast.LENGTH_SHORT).show();
                 }
+                break;
+            case R.id.btn_take_pic:
+                Intent takePic = new Intent(MainActivity.this, TestPictureClick.class);
+                startActivity(takePic);
                 break;
         }
     }

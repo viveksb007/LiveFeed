@@ -9,7 +9,8 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera"/>
+
+    <uses-feature android:name="android.hardware.camera" />
 
     <application
         android:allowBackup="true"
@@ -26,6 +27,9 @@
         </activity>
         <activity
             android:name=".LiveFeed"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".TestPictureClick"
             android:screenOrientation="landscape" />
     </application>
 

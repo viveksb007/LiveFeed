@@ -1,13 +1,17 @@
 package com.viveksb007.livefeed;
 
 import android.app.Activity;
+import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -30,19 +34,21 @@ import butterknife.ButterKnife;
 @SuppressWarnings("deprecation")
 public class LiveFeed extends Activity {
 
+    private Activity activity;
     private final String TAG = "LiveFeed";
     private Camera mCamera;
     private CameraPreview mCameraPreview;
     ServerSocket serverSocket;
-    byte[] imageData;
 
     @BindView(R.id.camera_preview)
     FrameLayout camPreview;
+    @BindView(R.id.btn_trigger)
+    Button trigger;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        activity = this;
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -58,6 +64,16 @@ public class LiveFeed extends Activity {
         Camera.Parameters params = mCamera.getParameters();
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         mCamera.setParameters(params);
+
+        ServerSocketThread temp = new ServerSocketThread();
+        temp.start();
+        trigger.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SendFrame sendFrame = new SendFrame(mSocket);
+                sendFrame.start();
+            }
+        });
     }
 
     public static Camera getCameraInstance() {
@@ -73,68 +89,82 @@ public class LiveFeed extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (mSocket != null) {
+            try {
+                mSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         mCamera.stopPreview();
         mCamera.release();
     }
 
-    private Camera.PictureCallback mPicture = new Camera.PictureCallback() {
+    public Camera.PictureCallback mPicture = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] bytes, Camera camera) {
             // bytes is image data that needs to transfer to desktop
-            imageData = bytes;
+            mCamera.stopPreview();
+            mCamera.startPreview();
+
+            if (bytes != null) {
+                Log.v(TAG, "Got Picture");
+                try {
+                    oStream.write(bytes);
+                    oStream.flush();
+                    oStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else
+                Log.v(TAG, "Got No picture");
         }
     };
+
+
+    Socket mSocket = null;
 
     public class ServerSocketThread extends Thread {
         static final int SOCKET_SERVER_PORT = 8080;
 
         @Override
         public void run() {
-            Socket socket = null;
+
             try {
                 serverSocket = new ServerSocket(SOCKET_SERVER_PORT);
-                while (true) {
-                    socket = serverSocket.accept();
-                    SendFrame sendFrame = new SendFrame(socket);
-                    sendFrame.start();
-                }
+
             } catch (IOException e) {
                 Log.e(TAG, e.toString());
-            } finally {
-                if (socket != null) {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
             }
         }
     }
 
+    DataOutputStream oStream;
+
     public class SendFrame extends Thread {
-        Socket socket;
 
         SendFrame(Socket socket) {
-            this.socket = socket;
         }
 
         @Override
         public void run() {
             try {
-                ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-                mCamera.takePicture(null, mPicture, null);
-                outputStream.writeObject(imageData);
-                outputStream.flush();
-                socket.close();
+                mSocket = serverSocket.accept();
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+            }
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(activity, "Got a Connection", Toast.LENGTH_SHORT).show();
                 }
+            });
+            try {
+                oStream = new DataOutputStream(mSocket.getOutputStream());
+                mCamera.takePicture(null, null, mPicture);
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
