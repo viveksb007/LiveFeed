@@ -28,9 +28,6 @@
         <activity
             android:name=".LiveFeed"
             android:screenOrientation="landscape" />
-        <activity
-            android:name=".TestPictureClick"
-            android:screenOrientation="landscape" />
     </application>
 
 </manifest>

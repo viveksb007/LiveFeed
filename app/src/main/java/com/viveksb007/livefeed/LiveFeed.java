@@ -2,6 +2,8 @@ package com.viveksb007.livefeed;
 
 import android.app.Activity;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,6 +15,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -39,11 +42,12 @@ public class LiveFeed extends Activity {
     private Camera mCamera;
     private CameraPreview mCameraPreview;
     ServerSocket serverSocket;
+    DataOutputStream oStream = null;
+    Socket mSocket = null;
+    boolean hasConnection = false;
 
     @BindView(R.id.camera_preview)
     FrameLayout camPreview;
-    @BindView(R.id.btn_trigger)
-    Button trigger;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +61,9 @@ public class LiveFeed extends Activity {
 
         Log.v("IP_ADDRESS", getIpAddress());
 
+        ServerSocketThread startServer = new ServerSocketThread();
+        startServer.start();
+
         mCamera = getCameraInstance();
         mCameraPreview = new CameraPreview(this, mCamera);
         camPreview.addView(mCameraPreview);
@@ -64,17 +71,9 @@ public class LiveFeed extends Activity {
         Camera.Parameters params = mCamera.getParameters();
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         params.setPictureSize(320, 240);
+        params.setPreviewFrameRate(30);
         mCamera.setParameters(params);
-
-        ServerSocketThread temp = new ServerSocketThread();
-        temp.start();
-        trigger.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                SendFrame sendFrame = new SendFrame(mSocket);
-                sendFrame.start();
-            }
-        });
+        mCamera.setPreviewCallback(mPreview);
     }
 
     public static Camera getCameraInstance() {
@@ -92,38 +91,41 @@ public class LiveFeed extends Activity {
         super.onDestroy();
         if (mSocket != null) {
             try {
+                oStream.close();
                 mSocket.close();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        mCamera.setPreviewCallback(null);
         mCamera.stopPreview();
         mCamera.release();
     }
 
-    public Camera.PictureCallback mPicture = new Camera.PictureCallback() {
+    public Camera.PreviewCallback mPreview = new Camera.PreviewCallback() {
         @Override
-        public void onPictureTaken(byte[] bytes, Camera camera) {
-            // bytes is image data that needs to transfer to desktop
-            mCamera.stopPreview();
-            mCamera.startPreview();
-
-            if (bytes != null) {
-                Log.v(TAG, "Got Picture");
-                try {
-                    oStream.write(bytes);
-                    oStream.flush();
-                    oStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+        public void onPreviewFrame(byte[] bytes, Camera camera) {
+            int format = mCamera.getParameters().getPreviewFormat();
+            if (format == ImageFormat.NV21 || format == ImageFormat.NV16 || format == ImageFormat.YUY2) {
+                int w = mCamera.getParameters().getPreviewSize().width;
+                int h = mCamera.getParameters().getPreviewSize().height;
+                YuvImage yuvImage = new YuvImage(bytes, format, w, h, null);
+                Rect rect = new Rect(0, 0, w, h);
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                yuvImage.compressToJpeg(rect, 85, outputStream);
+                byte[] imageData = outputStream.toByteArray();
+                if ((oStream != null) && (hasConnection)) {
+                    try {
+                        oStream.write(imageData);
+                        oStream.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            } else
-                Log.v(TAG, "Got No picture");
+            }
         }
     };
-
-
-    Socket mSocket = null;
 
     public class ServerSocketThread extends Thread {
         static final int SOCKET_SERVER_PORT = 8080;
@@ -133,39 +135,19 @@ public class LiveFeed extends Activity {
 
             try {
                 serverSocket = new ServerSocket(SOCKET_SERVER_PORT);
-
+                mSocket = serverSocket.accept();
+                if (mSocket != null) {
+                    oStream = new DataOutputStream(mSocket.getOutputStream());
+                    hasConnection = true;
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(activity, "Got a Connection", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             } catch (IOException e) {
                 Log.e(TAG, e.toString());
-            }
-        }
-    }
-
-    DataOutputStream oStream;
-
-    public class SendFrame extends Thread {
-
-        SendFrame(Socket socket) {
-        }
-
-        @Override
-        public void run() {
-            try {
-                mSocket = serverSocket.accept();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(activity, "Got a Connection", Toast.LENGTH_SHORT).show();
-                }
-            });
-            try {
-                oStream = new DataOutputStream(mSocket.getOutputStream());
-                mCamera.takePicture(null, null, mPicture);
-
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
