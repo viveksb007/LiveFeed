@@ -4,7 +4,8 @@ Taking Live Camera Feed from Android to Python on Desktop Wirelessly
 This Application transfers real-time camera feed from Android Device to Device which is running PythonClient Script ( can be Desktop or RasPI ).
 
 ### Demo :
-[**Coming Soon**]()
+
+[**Click here for Video Demo**](https://www.youtube.com/watch?v=McZ313Tf_MM)
 
 ### Motivation :
 Android Device is easily available to anyone, so for some project needing camera you can make use of this Application to get your work done.
