@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnOpenHotspot.setOnClickListener(this);
         btnLiveFeed.setOnClickListener(this);
 
-        mWifiManager = (WifiManager) getBaseContext().getSystemService(Context.WIFI_SERVICE);
+        mWifiManager = (WifiManager) getBaseContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     @Override

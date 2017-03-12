@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">LiveFeed</string>
+    <string name="permission_rationale">This App needs Camera and Wifi Permission to function properly.</string>
 </resources>

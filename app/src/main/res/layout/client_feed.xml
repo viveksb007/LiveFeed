@@ -3,8 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-    <FrameLayout
-        android:id="@+id/camera_preview"
+
+    <ImageView
+        android:id="@+id/img_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </LinearLayout>
