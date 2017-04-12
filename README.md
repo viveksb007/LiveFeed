@@ -6,7 +6,7 @@ This Application transfers real-time camera feed from Android Device to Device w
 ### Demo :
 ![ScreenShot](/thumbnail.png)
 
-#[**Click here for Video Demo**](https://www.youtube.com/watch?v=McZ313Tf_MM)
+## [**Click here for Video Demo**](https://www.youtube.com/watch?v=McZ313Tf_MM)
 
 ### Motivation :
 Android Device is easily available to anyone, so for some project needing camera you can make use of this Application to get your work done.
