@@ -2,12 +2,12 @@ package com.viveksb007.livefeed;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.widget.ImageView;
+import android.view.Window;
+import android.view.WindowManager;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.TextView;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.net.Socket;
-import java.net.UnknownHostException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -19,18 +19,35 @@ import butterknife.ButterKnife;
 public class ClientFeed extends Activity {
 
     public static boolean LOOP_FOR_FRAME = true;
-    @BindView(R.id.img_view)
-    ImageView feedView;
+    @BindView(R.id.web_view_feed)
+    WebView clientView;
+    @BindView(R.id.tv_client_feed)
+    TextView tvClientFeed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.client_feed);
         ButterKnife.bind(this);
-        ClientThread clientThread = new ClientThread(getIntent().getStringExtra("ip"), Integer.valueOf(getIntent().getStringExtra("port")));
-        clientThread.start();
+        String ip = getIntent().getStringExtra("ip");
+        Integer port = Integer.valueOf(getIntent().getStringExtra("port"));
+        tvClientFeed.setText("Feed from " + ip);
+        clientView.setWebViewClient(new MyClient());
+        clientView.loadUrl("http://" + ip + ":" + port);
     }
 
+    private class MyClient extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            view.loadUrl(url);
+            return true;
+        }
+    }
+
+    /*
     public class ClientThread extends Thread {
 
         private String ip;
@@ -49,9 +66,9 @@ public class ClientFeed extends Activity {
                 socket = new Socket(ip, port);
                 inputStream = new DataInputStream(socket.getInputStream());
                 while (LOOP_FOR_FRAME){
-                    /* Receive Image Data and show it on ImageView.
+                    //Receive Image Data and show it on ImageView.
                     inputStream.read();
-                    */
+
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -59,5 +76,6 @@ public class ClientFeed extends Activity {
 
         }
     }
+    */
 
 }

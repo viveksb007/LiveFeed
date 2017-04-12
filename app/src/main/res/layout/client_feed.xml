@@ -4,8 +4,18 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <ImageView
-        android:id="@+id/img_view"
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_client_feed"
+        android:gravity="center_horizontal"
+        android:textStyle="bold"
+        android:text="Client Feed"
+        android:layout_margin="10dp"
+        android:textSize="20sp"/>
+
+    <WebView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/web_view_feed"/>
 </LinearLayout>

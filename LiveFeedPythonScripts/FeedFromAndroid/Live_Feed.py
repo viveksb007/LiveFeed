@@ -1,3 +1,5 @@
+# Run this on PC ( or any device that supports python and has required dependencies ) and it would receive and show feed from Android Device
+
 import socket
 import cv2
 import numpy as np

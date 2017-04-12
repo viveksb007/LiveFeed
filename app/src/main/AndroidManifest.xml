@@ -31,6 +31,8 @@
             android:name=".ClientFeed"
             android:screenOrientation="landscape" />
         <activity android:name=".MainActivity" />
+        <activity android:name=".ClientActivity"/>
+
     </application>
 
 </manifest>

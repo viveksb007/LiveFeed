@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">LiveFeed</string>
     <string name="permission_rationale">This App needs Camera and Wifi Permission to function properly.</string>
+    <string name="client_get_ip">To get IP address, Type ifconfig on Terminal if you are in linux. See inet address of Wireless interface.</string>
 </resources>
